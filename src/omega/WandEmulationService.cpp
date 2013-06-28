@@ -65,13 +65,18 @@ bool WandEmulationService::processPointer(const Event* evt)
 	Ray r;
 	if(ds->getViewRayFromEvent(*evt, r))
 	{
-		myWandPosition = r.getOrigin();
+		myWandPosition = r.getPoint(1);
 		myWandOrientation = Math::buildRotation(r.getDirection(), Vector3f(0, 0, -1), Vector3f::UnitY());
 	}
 
 	if((myEventFlags & Event::Button2) == Event::Button2)
 	{
 		updateAxes(*evt);
+	}
+	else
+	{
+		myLastPointerPosition[0] = 0;
+		myLastPointerPosition[1] = 0;
 	}
 
 	if(evt->getType() == Event::Down)
@@ -103,11 +108,14 @@ void WandEmulationService::updateAxes(const Event& evt)
 	float curX = evt.getPosition().x() / resolution[0];
 	float curY = evt.getPosition().y() / resolution[1];
 
-	float dx = (curX - myLastPointerPosition[0]) * pointerAxisMultiplier;
-	float dy = -(curY - myLastPointerPosition[1]) * pointerAxisMultiplier;
+	if(myLastPointerPosition[0] != 0 && myLastPointerPosition[0] != 0)
+	{
+		float dx = (curX - myLastPointerPosition[0]) * pointerAxisMultiplier;
+		float dy = -(curY - myLastPointerPosition[1]) * pointerAxisMultiplier;
 
-	myXAxis = dx;
-	myYAxis = dy;
+		myXAxis = dx;
+		myYAxis = dy;
+	}
 
 	// Save current (normalized) pointer position.
 	myLastPointerPosition[0] = curX;
@@ -125,10 +133,10 @@ void WandEmulationService::poll()
 		Event* evt = getEvent(i);
 		if(evt->getServiceType() == Event::ServiceTypeKeyboard)
 		{
-			eventWasKeyUpDown |= processKey(evt, 'a', Event::ButtonLeft);
-			eventWasKeyUpDown |= processKey(evt, 'd', Event::ButtonRight);
-			eventWasKeyUpDown |= processKey(evt, 'w', Event::ButtonUp);
-			eventWasKeyUpDown |= processKey(evt, 's', Event::ButtonDown);
+			eventWasKeyUpDown |= processKey(evt, 'A', Event::ButtonLeft);
+			eventWasKeyUpDown |= processKey(evt, 'D', Event::ButtonRight);
+			eventWasKeyUpDown |= processKey(evt, 'W', Event::ButtonUp);
+			eventWasKeyUpDown |= processKey(evt, 'S', Event::ButtonDown);
 
 			// Buttons 1, 2, 3 Are mapped to mouse buttons. Add some 
 			// more buttons using the keyboard
@@ -137,13 +145,13 @@ void WandEmulationService::poll()
 			eventWasKeyUpDown |= processKey(evt, '2', Event::Button4);
 			eventWasKeyUpDown |= processKey(evt, '3', Event::Button5);
 			eventWasKeyUpDown |= processKey(evt, '4', Event::Button6);
-			evt->setProcessed();
+			//evt->setProcessed();
 		}
 		
 		if(evt->getServiceType() == Event::ServiceTypePointer)
 		{
 			eventWasKeyUpDown |= processPointer(evt);
-			evt->setProcessed();
+			//evt->setProcessed();
 		}
 	}
 
@@ -159,7 +167,7 @@ void WandEmulationService::poll()
 void WandEmulationService::generateEvent(Event::Type type)
 {
 	Event* newEvent = writeHead();
-	newEvent->reset(type, Service::Wand, 0);
+	newEvent->reset(type, Service::Wand, 1);
 	newEvent->setPosition(myWandPosition);
 	newEvent->setOrientation(myWandOrientation);
 	newEvent->setFlags(myEventFlags);
@@ -168,4 +176,10 @@ void WandEmulationService::generateEvent(Event::Type type)
 	newEvent->setExtraDataType(Event::ExtraDataFloatArray);
 	newEvent->setExtraDataFloat(0, myXAxis);
 	newEvent->setExtraDataFloat(1, myYAxis);
+
+	newEvent = writeHead();
+	newEvent->reset(type, Service::Mocap, 1);
+	newEvent->setPosition(myWandPosition);
+	newEvent->setOrientation(myWandOrientation);
+	newEvent->setFlags(myEventFlags);
 }
