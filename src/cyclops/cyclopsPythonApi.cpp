@@ -351,8 +351,8 @@ CY_API void cyclopsPythonApiInit()
 		initcyclops();
 
 		// import the module by default
-		omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
-		interp->eval("from cyclops import *");
+		//omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
+		//interp->eval("from cyclops import *");
 	}
 }
 

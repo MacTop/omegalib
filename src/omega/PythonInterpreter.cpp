@@ -103,11 +103,13 @@ public:
 	}
 };
 
+static PyThreadState* spts = NULL;
 ///////////////////////////////////////////////////////////////////////////////
 void PythonInterpreter::lockInterpreter()
 {
 	if(myDebugShell) omsg("PythonInterpreter::lockInterpreter()");
 	myLock.lock();
+	PyEval_RestoreThread(spts);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,6 +117,7 @@ void PythonInterpreter::unlockInterpreter()
 {
 	if(myDebugShell) omsg("PythonInterpreter::unlockInterpreter()");
 	myLock.unlock();
+	spts = PyEval_SaveThread();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -198,6 +201,10 @@ void PythonInterpreter::initialize(const char* programName)
 
 	// Initialize interpreter.
 	Py_Initialize();
+	PyEval_InitThreads();
+	spts = PyEval_SaveThread();
+
+	lockInterpreter();
 
 	// HACK: Calling PyRun_SimpleString for the first time for some reason results in
 	// a "\n" message being generated which is causing the error dialog to
@@ -261,6 +268,7 @@ void PythonInterpreter::initialize(const char* programName)
 	PyRun_SimpleString("from omega import *");
 	PyRun_SimpleString("from euclid import *");
 	if(myInitCommand != "") PyRun_SimpleString(myInitCommand.c_str());
+	unlockInterpreter();
 	
 	omsg("Python Interpreter initialized.");
 }
@@ -318,6 +326,8 @@ void PythonInterpreter::addModule(
 ///////////////////////////////////////////////////////////////////////////////
 void PythonInterpreter::eval(const String& cscript, const char* format, ...)
 {
+	lockInterpreter();
+
 	String script = cscript;
 	StringUtils::trim(script);
 	char* str = const_cast<char*>(script.c_str());
@@ -341,14 +351,11 @@ void PythonInterpreter::eval(const String& cscript, const char* format, ...)
 		else		
 		{
 			if(myDebugShell) ofmsg("PythonInterpreter::eval() >>>> %1%", %str);
-			lockInterpreter();
 			PyRun_SimpleString(str);
-			unlockInterpreter();
 		}
 	}
 	else
 	{
-		lockInterpreter();
 		PyObject * module = PyImport_AddModule("__main__");
 		PyObject* dict = PyModule_GetDict(module);
 		PyObject* result = PyRun_String(str, Py_eval_input, dict, dict);
@@ -366,8 +373,8 @@ void PythonInterpreter::eval(const String& cscript, const char* format, ...)
 
 			va_end(args);
 		}
-		unlockInterpreter();
 	}
+	unlockInterpreter();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -552,13 +559,16 @@ void PythonInterpreter::update(const UpdateContext& context)
 	PyObject *arglist;
 	arglist = Py_BuildValue("(lff)", (long int)context.frameNum, context.time, context.dt);
 
+	lockInterpreter();
+
 	foreach(void* cb, myUpdateCallbacks)
 	{
 		// BLAGH cast
 		PyObject* pyCallback =(PyObject*)cb;
 		PyObject_CallObject(pyCallback, arglist);
-
 	}
+
+	unlockInterpreter();
 
 	Py_DECREF(arglist);
 }

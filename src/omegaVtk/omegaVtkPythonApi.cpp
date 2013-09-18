@@ -105,7 +105,7 @@ void OVTK_API omegaVtkPythonApiInit()
 	if(!sApiInitialized)
 	{
 		omsg("omegaVtkPythonApiInit()");
-		//omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
+		omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
 		//interp->addModule("omegaVtk", ovtkMethods);
 		initomegaVtk();
 	}

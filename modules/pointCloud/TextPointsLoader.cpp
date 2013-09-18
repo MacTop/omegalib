@@ -119,7 +119,6 @@ void TextPointsLoader::readXYZ(
      			ssdouble.clear();
      			index++;
 		}
-
 		points->push_back(point);
 		colors->push_back(color);
 

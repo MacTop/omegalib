@@ -119,6 +119,9 @@ OmegaViewer::OmegaViewer():
 ///////////////////////////////////////////////////////////////////////////////
 void OmegaViewer::initialize()
 {
+	PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
+	interp->lockInterpreter();
+
 #ifdef OMEGA_BUILD_VTK_LIB
 	omegaVtkPythonApiInit();
 #endif
@@ -144,9 +147,13 @@ void OmegaViewer::initialize()
 	// Initialize the python wrapper module for this class.
 	initomegaViewer();
 
+	interp->unlockInterpreter();
+
 	// Run the init script.
-	PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
+	interp->lockInterpreter();
 	interp->runFile(orunInitScriptName, PythonInterpreter::NoRunFlags);
+	interp->unlockInterpreter();
+
 	interp->eval(myAppStartFunctionCall);
 
 	// If a default script has been passed to orun, queue it's execution through the python

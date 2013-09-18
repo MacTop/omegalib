@@ -1456,7 +1456,7 @@ void omegaPythonApiInit()
 	if(euclidModuleCode != NULL)
 	{
 		sEuclidModule = PyImport_ExecCodeModule("euclid", euclidModuleCode);
-		interp->eval("from euclid import *");
+		//interp->eval("from euclid import *");
 	}
 
 	// Register omega::Vector3f <-> euclid.Vector3 converters

@@ -126,6 +126,8 @@ namespace omega
 		virtual void commitSharedData(SharedOStream& out);
 		virtual void updateSharedData(SharedIStream& in);
 
+		void lockInterpreter();
+		void unlockInterpreter();
 		//String getHelpString(const String& filter);
 	protected:
 		struct QueuedCommand
@@ -161,8 +163,8 @@ namespace omega
 		Lock myLock;
 
 	private:
-		void lockInterpreter();
-		void unlockInterpreter();
+		//void lockInterpreter();
+		//void unlockInterpreter();
 
 	private:
 		static const Event* mysLastEvent;

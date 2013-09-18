@@ -302,8 +302,8 @@ void OTK_API omegaToolkitPythonApiInit()
 		initomegaToolkit();
 
 		// import the module by default
-		omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
-		interp->eval("from omegaToolkit import *");
+		//omega::PythonInterpreter* interp = SystemManager::instance()->getScriptInterpreter();
+		//interp->eval("from omegaToolkit import *");
 	}
 }
 
