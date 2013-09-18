@@ -625,12 +625,14 @@ void PythonInterpreter::handleEvent(const Event& evt)
 	// Script code will be able to retrieve it using getEvent()
 	mysLastEvent = &evt;
 
+    lockInterpreter();
 	foreach(void* cb, myEventCallbacks)
 	{
 		// BLAGH cast
 		PyObject* pyCallback =(PyObject*)cb;
 		PyObject_CallObject(pyCallback, NULL);
 	}
+    unlockInterpreter();
 
 	// We can't guarantee the event will live outside of this call tree, so 
 	// clean up the static variable. getEvent() will return None when called 
